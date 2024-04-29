@@ -101,8 +101,40 @@ def create_user():
             print(f"Error: {err}")
 
 
+def trasfer_money():
+    print("Welcome to our money transfer service")
+    print("To transfer money to another account, you will need to provide that account's Account Number")
+    user_action = input("Would you like to proceed? Y/N\n").lower()
+    #Repeatly ask user for either Y or N answer to proceed
+    while(user_action != 'n' or 'y'):
+            user_action = input("Please enter either Y or N").lower()
+    #exits the program
+    if user_action == "n":
+        exit()
+    elif user_action == "y":
+        print("You have choosen to proceed")
+        target_account = int(input("Please input the acccount number"))
+        try:
+            connector = mysql.connector.connect( user = User, password = Password, database = 'example' )
+            
+            cursor = connector.cursor()
+            cursor.execute('SELECT Account_Number FROM account')
+            account = cursor.fetchall()
+            
+            for number in account:
+                if str(number[0]) == target_account:
+                    print("Found account")
+                    cursor.execute(f"")
+
+
+            cursor.close()
+            connector.close()
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+
 #Has to be last because it includes preciously made functions
 def user_action():
+    global program
     print("What can I help you with Today")
     action = int(input("1.) Login\n2.) Create Account\n3.)Exit\n"))
     print(action)
@@ -112,9 +144,8 @@ def user_action():
         create_user()
         user_action()
     elif action == 3:
-        program == False
+        program = False
         print("Come again")
-        return
     else:
         action = int(input("Please use either 1, 2, or 3 as your repsonse"))
 
