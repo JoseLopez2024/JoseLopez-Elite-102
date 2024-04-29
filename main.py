@@ -1,4 +1,6 @@
 import mysql.connector
+import random
+
 
 User = ''
 Password = ''
@@ -6,19 +8,13 @@ Password = ''
 program = True
 
 
-
-
 #We use this code to find out if a user is already made in the server
 def target(target):
     target_found = False
     try:
-        conn = mysql.connector.connect(
-            user='root',
-            password='Emanuel625.',
-            database = 'example'
-        )
+        connector = mysql.connector.connect( user = 'root', password = 'Emanuel625.', database = 'example' )
 
-        cursor = conn.cursor()
+        cursor = connector.cursor()
         cursor.execute('SELECT user FROM mysql.user')
         users = cursor.fetchall()
 
@@ -28,11 +24,35 @@ def target(target):
                 target_found = True
 
         cursor.close()
-        conn.close()
+        connector.close()
         return target_found
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     
+def generate_access_number():
+    
+    try:
+        temp_access_number = random.randrange(10000,99999)
+
+        connector = mysql.connector.connect( user = 'root', password = 'Emanuel625.', database = 'example')
+
+        cursor = connector.cursor()
+        cursor.execute("SELECT Access_Number FROM account")
+        Access_number = cursor.fetchall()
+
+        for number in Access_number:
+           print(number[0])
+           if number[0] == temp_access_number:
+             generate_access_number()
+
+        cursor.close()
+        connector.close()
+        print(temp_access_number)
+        return temp_access_number
+    except mysql.connector.error as err:
+        print(F"Error: {err}")
+
+
 #Function that will ask for the username and password 
 def login():
     global user
@@ -52,21 +72,33 @@ def create_user():
     desired_username = input("Please enter your Username:\n")
     desired_password = input("Please input your Password:\n")
 
-    connection = mysql.connector.connect(user = 'root', password = 'Emanuel625.')
+    avaliable = not target(desired_username)
 
-    cursor = connection.cursor()
-
-    username = desired_username
-
-    cursor.execute('SELECT username FROM users WHERE username = %(username)s', (username,))
-    checkUsername = mycursor.fetchone()
-    if checkUsername != 0:
-        print('Username is not exist')
+    if avaliable == False:
+        print("Username is already taken")
+        create_user()
     else:
-        print('Logged In!')
+        try:
+            connector = mysql.connector.connect(user = 'root', password = 'Emanuel625.', database = 'example')
+
+            cursor = connector.cursor()
+            cursor.execute(f"CREATE USER'{desired_username}'@'localhost' IDENTIFIED BY '{desired_password}'")
+            print("User Created")
 
 
+            starting_value = float(input("How much is in your starting acount?\n"))
+            #The isinstance allows us to check if the value is that type of value
+            while(isinstance(starting_value, float) == False):
+                starting_value = float(input("Please insert a decimal placed number (Ex: 100.00, 200.00)\n"))
+            
 
+            cursor.execute(f"INSERT INTO account(Account_balance,Account_owner,Account_password,Access_Number)VALUES ({starting_value}, {desired_username}, {desired_password}, {generate_access_number()})")
+
+            cursor.close()
+            connector.close()
+            print("User Created")
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
 
 
 #Has to be last because it includes preciously made functions
@@ -78,21 +110,16 @@ def user_action():
         login()
     elif action == 2:
         create_user()
+        user_action()
     elif action == 3:
         program == False
+        print("Come again")
         return
     else:
         action = int(input("Please use either 1, 2, or 3 as your repsonse"))
 
 
 
-
-
-login()
-
-
-# while program == True:
-#     print("Welcome to Ema banks")
-#     user_action()
-
-
+while program == True:
+    print("Welcome to Ema banks")
+    user_action()
